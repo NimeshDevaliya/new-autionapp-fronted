@@ -110,24 +110,41 @@ export default function TeamDetailPage({
       key: "basePrice",
       header: "Base price",
       numeric: true,
-      render: (entry) => formatMoney(entry.basePrice),
+      // retained players never went under the hammer, so they have no base price
+      render: (entry) =>
+        entry.acquisitionType === "RETAINED" ? (
+          <span className="text-faint">—</span>
+        ) : (
+          formatMoney(entry.basePrice)
+        ),
     },
     {
       key: "soldPrice",
       header: "Sold price",
       numeric: true,
-      render: (entry) => (
-        <span className="text-amber">{formatMoney(entry.soldPrice)}</span>
-      ),
+      render: (entry) => {
+        if (entry.acquisitionType === "RETAINED") {
+          return <span className="text-faint">—</span>;
+        }
+        // an auction player still on the books at 0 went unsold
+        if (entry.soldPrice === 0) {
+          return <span className="text-ball">Unsold</span>;
+        }
+        return <span className="text-amber">{formatMoney(entry.soldPrice)}</span>;
+      },
     },
     {
       key: "acquisitionType",
       header: "Acquired",
-      render: (entry) => (
-        <Badge tone={entry.acquisitionType === "RETAINED" ? "sky" : "neutral"}>
-          {entry.acquisitionType === "RETAINED" ? "Retained" : "Auction"}
-        </Badge>
-      ),
+      render: (entry) => {
+        if (entry.acquisitionType === "RETAINED") {
+          return <Badge tone="sky">Retained</Badge>;
+        }
+        if (entry.soldPrice === 0) {
+          return <Badge tone="ball">Unsold</Badge>;
+        }
+        return <Badge tone="neutral">Auction</Badge>;
+      },
     },
   ];
 
