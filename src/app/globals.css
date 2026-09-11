@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/*
+  Cricket auction platform — design tokens.
+  Dark-first: auctions run on a projector in a dim room.
+*/
+@theme {
+  --color-ink: #0b1220;
+  --color-surface: #131c2e;
+  --color-surface-2: #1b263c;
+  --color-surface-3: #24314c;
+  --color-line: #26324a;
+  --color-line-strong: #354463;
+
+  --color-text: #f1f5f9;
+  --color-muted: #94a3b8;
+  --color-faint: #64748b;
+
+  /* semantic hues, each with one job */
+  --color-amber: #f5a524;
+  --color-amber-dim: #a9700f;
+  --color-pitch: #35d07f;
+  --color-pitch-dim: #15603c;
+  --color-ball: #e5484d;
+  --color-ball-dim: #7a2326;
+  --color-sky: #4cc3ff;
+  --color-sky-dim: #1d5f80;
+
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Money and scoreboard figures must not shift width as they tick up. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--color-amber);
+  color: var(--color-ink);
+}
+
+/* Visible keyboard focus everywhere, never removed. */
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Quiet scrollbars that don't fight the dark surfaces. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 6px;
+  border: 3px solid var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The one orchestrated motion in the product: a bid landing. */
+@keyframes bid-land {
+  0% {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-bid-land {
+  animation: bid-land 220ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+@keyframes pulse-live {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.animate-live {
+  animation: pulse-live 1.8s ease-in-out infinite;
+}
