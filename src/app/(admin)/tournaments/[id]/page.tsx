@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/badge";
 import { TeamCrest } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/modal";
+import { CricheroesSyncButton } from "@/components/cricheroes/sync-button";
 import { Tabs, type TabItem } from "@/components/ui/tabs";
 import { ErrorState, LoadingState } from "@/components/ui/states";
 import { tournamentsApi, type TournamentInput } from "@/lib/api/tournaments";
@@ -177,6 +178,13 @@ export default function TournamentDetailPage({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {data.externalId && (
+            <CricheroesSyncButton
+              tournamentId={id}
+              tournamentName={data.name}
+              size="md"
+            />
+          )}
           <Button variant="secondary" onClick={() => setEditOpen(true)}>
             <Pencil className="size-4" aria-hidden />
             Edit

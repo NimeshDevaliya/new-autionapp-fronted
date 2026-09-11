@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/admin-shell";
 import { Panel, PanelHeader, StatCard } from "@/components/ui/panel";
 import { StatusBadge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/button";
+import { CricheroesSyncButton } from "@/components/cricheroes/sync-button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/states";
 import { statisticsApi } from "@/lib/api/statistics";
 import { tournamentsApi } from "@/lib/api/tournaments";
@@ -44,6 +45,10 @@ export default function DashboardPage() {
   const liveAuction = auctions.data?.items.find(
     (auction) => auction.status === "LIVE" || auction.status === "PAUSED"
   );
+  // the season being played on CricHeroes, if any — that's what the sync targets
+  const syncTarget = tournaments.data?.items.find(
+    (tournament) => tournament.status === "ONGOING" && tournament.externalId
+  );
 
   return (
     <>
@@ -51,12 +56,22 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Everything happening across the league right now."
         action={
-          liveAuction ? (
-            <LinkButton href={`/auctions/${liveAuction._id}`} variant="primary">
-              <Gavel className="size-4" aria-hidden />
-              Open live auction
-            </LinkButton>
-          ) : null
+          <div className="flex flex-wrap gap-2">
+            {syncTarget && (
+              <CricheroesSyncButton
+                tournamentId={syncTarget._id}
+                tournamentName={syncTarget.name}
+                size="md"
+                label="Sync results from CricHeroes"
+              />
+            )}
+            {liveAuction && (
+              <LinkButton href={`/auctions/${liveAuction._id}`} variant="primary">
+                <Gavel className="size-4" aria-hidden />
+                Open live auction
+              </LinkButton>
+            )}
+          </div>
         }
       />
 
