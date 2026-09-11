@@ -37,8 +37,30 @@ export function clearToken(): void {
   }
 }
 
+/**
+ * "localhost" in the configured API address means this machine only from the
+ * browser's point of view. When the app is opened from another device on the
+ * network (http://192.168.x.x:3000), point the API at that same host instead
+ * of the device's own localhost. Explicit non-local addresses are left alone.
+ */
+export function resolveBaseUrl(configured: string): string {
+  if (typeof window === "undefined") return configured;
+  try {
+    const url = new URL(configured);
+    const isLocal = (host: string) =>
+      host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+    if (isLocal(url.hostname) && !isLocal(window.location.hostname)) {
+      url.hostname = window.location.hostname;
+      return url.toString().replace(/\/$/, "");
+    }
+  } catch {
+    /* not a parseable URL — use it as written */
+  }
+  return configured;
+}
+
 export const apiClient = axios.create({
-  baseURL: BASE_URL ?? "http://localhost:3005/api",
+  baseURL: resolveBaseUrl(BASE_URL ?? "http://localhost:3005/api"),
   headers: { "Content-Type": "application/json" },
   timeout: 20_000,
 });

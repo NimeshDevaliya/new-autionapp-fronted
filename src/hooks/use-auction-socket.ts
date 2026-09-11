@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { queryKeys } from "@/lib/query-keys";
+import { resolveBaseUrl } from "@/lib/api-client";
 
 export type AuctionEventName =
   | "CONNECTED"
@@ -48,7 +49,8 @@ export function useAuctionSocket(
   useEffect(() => {
     if (!auctionId) return;
 
-    const base = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:3005/ws";
+    // same host substitution as the REST client, so the socket follows the page host
+    const base = resolveBaseUrl(process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:3005/ws");
     let cancelled = false;
 
     const connect = () => {
