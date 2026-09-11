@@ -1,14 +1,11 @@
 import { request } from "../api-client";
-import type { DashboardStats, LeaderboardEntry, SearchResults } from "@/types";
+import type { DashboardStats, Leaderboards, SearchResults } from "@/types";
 
 export const statisticsApi = {
   dashboard: () => request<DashboardStats>({ url: "/statistics/dashboard" }),
 
   leaderboards: (params: { tournament?: string; limit?: number } = {}) =>
-    request<{
-      topRunScorers: LeaderboardEntry[];
-      topWicketTakers: LeaderboardEntry[];
-    }>({ url: "/statistics/leaderboards", params }),
+    request<Leaderboards>({ url: "/statistics/leaderboards", params }),
 };
 
 export const searchApi = {

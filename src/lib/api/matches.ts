@@ -1,5 +1,5 @@
 import { request, requestList } from "../api-client";
-import type { Match } from "@/types";
+import type { Match, MatchDetail } from "@/types";
 
 export interface MatchListParams {
   page?: number;
@@ -12,7 +12,7 @@ export interface MatchListParams {
 export const matchesApi = {
   list: (params: MatchListParams = {}) => requestList<Match>({ url: "/matches", params }),
 
-  get: (id: string) => request<Match>({ url: `/matches/${id}` }),
+  get: (id: string) => request<MatchDetail>({ url: `/matches/${id}` }),
 
   create: (data: Record<string, unknown>) =>
     request<Match>({ url: "/matches", method: "POST", data }),

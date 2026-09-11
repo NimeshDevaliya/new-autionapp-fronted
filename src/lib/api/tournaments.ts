@@ -1,5 +1,10 @@
 import { request, requestList } from "../api-client";
-import type { PointsTableRow, Tournament, TournamentStatistics } from "@/types";
+import type {
+  ImportReport,
+  PointsTableRow,
+  Tournament,
+  TournamentStatistics,
+} from "@/types";
 
 export interface TournamentListParams {
   page?: number;
@@ -52,6 +57,18 @@ export const tournamentsApi = {
 
   end: (id: string) =>
     request<Tournament>({ url: `/tournaments/${id}/end`, method: "POST" }),
+
+  /** Pulls matches, scorecards and standings from CricHeroes. Slow — one request per match. */
+  importCricheroes: (
+    id: string,
+    data: { externalTournamentId?: number; refresh?: boolean } = {}
+  ) =>
+    request<ImportReport>({
+      url: `/tournaments/${id}/import-cricheroes`,
+      method: "POST",
+      data,
+      timeout: 5 * 60_000,
+    }),
 
   seasons: () =>
     request<Array<{ seriesName: string; seasons: Tournament[] }>>({

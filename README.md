@@ -78,6 +78,15 @@ src/
 - Money is quoted in lakhs and rendered with `formatMoney()`, which rolls over
   to crore at 100.
 
+## Results and statistics
+
+Tournament pages carry fixtures with scores, a points table with net run rate
+and recent form, and top-10 boards for batting, bowling, all-rounders and
+fielding plus the best individual performances. Every match opens to a full
+scorecard at `/matches/[id]`. "Sync from CricHeroes" on the matches tab pulls
+the league's latest results from the scoring app and shows a report of what
+changed.
+
 ## Live auction screen
 
 The console keeps itself current over a WebSocket: when the server reports a

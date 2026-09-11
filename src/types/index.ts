@@ -52,6 +52,8 @@ export interface Tournament {
   location?: string;
   status: TournamentStatus;
   description?: string;
+  /** CricHeroes tournament id, when results are synced from there */
+  externalId?: number;
   createdAt: string;
   updatedAt: string;
   teamCount?: number;
@@ -85,10 +87,21 @@ export interface TeamStats {
   matches: number;
   wins: number;
   losses: number;
+  ties: number;
+  noResults: number;
   points: number;
+  pointsAdjustment: number;
+  /** null until the team has both batted and bowled */
+  netRunRate: number | null;
+  runsFor: number;
+  oversFor: number;
+  runsAgainst: number;
+  oversAgainst: number;
   runs: number;
   wickets: number;
   players: number;
+  /** last five results, oldest first */
+  form: Array<"W" | "L" | "T" | "N">;
 }
 
 export interface Player {
@@ -261,38 +274,149 @@ export interface DashboardStats {
   totalAuctionAmount: number;
 }
 
-export interface LeaderboardEntry {
+type PlayerSummary = Pick<Player, "_id" | "fullName" | "profileImage" | "role">;
+type TeamSummary = Pick<Team, "_id" | "name" | "shortName" | "logo" | "color">;
+
+/** Shared shape of every leaderboard row: the player and the team they last played for. */
+interface LeaderboardBase {
   _id: string;
-  player: Pick<Player, "fullName" | "profileImage" | "role"> | null;
+  player: PlayerSummary | null;
+  team: TeamSummary | null;
+}
+
+export interface BattingLeaderboardEntry extends LeaderboardBase {
+  matches: number;
+  innings: number;
+  runs: number;
+  balls: number;
+  notOuts: number;
+  highestScore: number;
+  /** null when never dismissed */
+  average: number | null;
+  strikeRate: number;
+  fours: number;
+  sixes: number;
+  fifties: number;
+  hundreds: number;
+}
+
+export interface BowlingLeaderboardEntry extends LeaderboardBase {
+  matches: number;
+  innings: number;
+  balls: number;
+  overs: number;
+  maidens: number;
+  runsConceded: number;
+  wickets: number;
+  economy: number;
+  average: number | null;
+  strikeRate: number | null;
+  bestBowling: string;
+}
+
+export interface AllRounderLeaderboardEntry extends LeaderboardBase {
+  matches: number;
+  battingInnings: number;
+  runs: number;
+  strikeRate: number;
+  bowlingInnings: number;
+  wickets: number;
+  economy: number;
+  /** runs + (wicket weight × wickets); the weight is sent alongside */
+  points: number;
+}
+
+export interface FieldingLeaderboardEntry extends LeaderboardBase {
+  catches: number;
+  stumpings: number;
+  runOuts: number;
+  dismissals: number;
+}
+
+/**
+ * Loose union kept for components that only read the common batting/bowling
+ * fields; prefer the specific entry types in new code.
+ */
+export type LeaderboardEntry = LeaderboardBase & {
   runs?: number;
   balls?: number;
   innings?: number;
-  strikeRate?: number;
+  strikeRate?: number | null;
   wickets?: number;
   runsConceded?: number;
+};
+
+export interface MatchRef {
+  _id: string;
+  matchNumber?: number;
+  matchDate?: string;
+  teamA: string;
+  teamB: string;
+}
+
+export interface HighestScoreEntry {
+  _id: string;
+  runs: number;
+  balls: number;
+  fours: number;
+  sixes: number;
+  isOut: boolean;
+  player: PlayerSummary | null;
+  team: TeamSummary | null;
+  match: MatchRef | null;
+}
+
+export interface BestBowlingEntry {
+  _id: string;
+  overs: number;
+  maidens: number;
+  runsConceded: number;
+  wickets: number;
+  player: PlayerSummary | null;
+  team: TeamSummary | null;
+  match: MatchRef | null;
 }
 
 export interface TournamentStatistics {
   totals: {
     matches: number;
+    completedMatches: number;
     teams: number;
     players: number;
     runs: number;
     wickets: number;
+    fours: number;
+    sixes: number;
   };
-  topRunScorers: LeaderboardEntry[];
-  topWicketTakers: LeaderboardEntry[];
-  highestScores: Array<{
-    _id: string;
-    runs: number;
-    balls: number;
-    player: Pick<Player, "fullName" | "profileImage" | "role">;
-    team: Pick<Team, "name" | "shortName" | "logo">;
-  }>;
+  allRounderWicketWeight: number;
+  topRunScorers: BattingLeaderboardEntry[];
+  topWicketTakers: BowlingLeaderboardEntry[];
+  topAllRounders: AllRounderLeaderboardEntry[];
+  topFielders: FieldingLeaderboardEntry[];
+  highestScores: HighestScoreEntry[];
+  bestBowling: BestBowlingEntry[];
+}
+
+export interface Leaderboards {
+  allRounderWicketWeight: number;
+  topRunScorers: BattingLeaderboardEntry[];
+  topWicketTakers: BowlingLeaderboardEntry[];
+  topAllRounders: AllRounderLeaderboardEntry[];
+  topFielders: FieldingLeaderboardEntry[];
 }
 
 export interface PointsTableRow extends TeamStats {
-  team: Pick<Team, "_id" | "name" | "shortName" | "logo" | "color">;
+  team: TeamSummary;
+}
+
+/** One side's score in a match list. */
+export interface InningsSummary {
+  team: string;
+  inningsNumber: number;
+  runs: number;
+  wickets: number;
+  overs: number;
+  allOut: boolean;
 }
 
 export interface Match {
@@ -304,9 +428,90 @@ export interface Match {
   matchDate?: string;
   venue?: string;
   status: MatchStatus;
+  tossWonBy?: Team | null;
+  tossDecision?: "BAT" | "BOWL";
   winner?: Team | null;
   result?: string;
   overs?: number;
+  playerOfTheMatch?: PlayerSummary | null;
+  externalId?: number;
+  innings?: InningsSummary[];
+}
+
+export type DismissalType =
+  | "NOT_OUT"
+  | "BOWLED"
+  | "CAUGHT"
+  | "LBW"
+  | "RUN_OUT"
+  | "STUMPED"
+  | "HIT_WICKET"
+  | "RETIRED_HURT"
+  | "OTHER";
+
+export interface ScorecardBatting {
+  _id: string;
+  player: PlayerSummary;
+  runs: number;
+  balls: number;
+  fours: number;
+  sixes: number;
+  isOut: boolean;
+  dismissalType: DismissalType;
+  dismissalBowler?: Pick<Player, "_id" | "fullName"> | null;
+  dismissalFielder?: Pick<Player, "_id" | "fullName"> | null;
+  battingPosition?: number;
+}
+
+export interface ScorecardBowling {
+  _id: string;
+  player: PlayerSummary;
+  overs: number;
+  maidens: number;
+  runsConceded: number;
+  wickets: number;
+  wides: number;
+  noBalls: number;
+}
+
+export interface ScorecardInnings {
+  innings: {
+    _id: string;
+    battingTeam: string;
+    bowlingTeam: string;
+    inningsNumber: number;
+    totalRuns: number;
+    totalWickets: number;
+    totalOvers: number;
+    extras: number;
+    allOut: boolean;
+  };
+  batting: ScorecardBatting[];
+  bowling: ScorecardBowling[];
+}
+
+export interface MatchDetail extends Match {
+  scorecard: ScorecardInnings[];
+}
+
+export interface ImportReport {
+  tournament: { id: string; name: string; externalId: number };
+  matches: { found: number; imported: number; failed: Array<{ matchId: number; error: string }> };
+  players: {
+    linkedById: number;
+    matched: Array<{ cricheroes: string; ours: string; rule: string }>;
+    created: string[];
+    aliased: Array<{ name: string; externalId: number }>;
+  };
+  outsideSquad: Array<{ player: string; playedFor: string }>;
+  unresolvedNames: string[];
+  warnings: string[];
+  standings: Array<{
+    team: string;
+    official: { matches: number; won: number; lost: number; points: number; nrr: string };
+    derived: { matches: number; wins: number; losses: number; points: number; nrr: number | null };
+    pointsAdjustment: number;
+  }>;
 }
 
 export interface SearchResults {
