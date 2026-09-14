@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MPL Auction Money Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Single-theme on purpose: this page is a printable sheet. Every colour is painted explicitly. */
+  :root {
+    --paper: #ffffff;
+    --wash: #f4f5f9;
+    --ink: #131a2c;
+    --muted: #5b6478;
+    --faint: #8b93a7;
+    --line: #d5d9e3;
+    --line-strong: #b4bccd;
+    --amber: #d98b0f;
+    --amber-wash: #fbf1dc;
+    --on-amber: #1a1200;
+    --pitch: #1f9a5a;
+    --pitch-wash: #e1f5ea;
+    --ball: #c93a3f;
+    --ball-wash: #fbe4e5;
+    --navy-wash: #e6ebf7;
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: light; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Segoe UI", Roboto, system-ui, sans-serif;
+    font-size: 11.5pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3, .display {
+    font-family: "Poppins", "Segoe UI", Roboto, system-ui, sans-serif;
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  h1 { font-size: 28pt; font-weight: 700; }
+  h2 { font-size: 16pt; }
+  h3 { font-size: 12pt; }
+  p { margin: 0; }
+  .mono, .num { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  .sheet {
+    max-width: 820px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 28px 40px;
+  }
+  @media print {
+    .sheet { max-width: none; padding: 0; }
+  }
+
+  /* ---- masthead ---- */
+  .masthead {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: end;
+    padding-bottom: 14px;
+    border-bottom: 3px solid var(--ink);
+  }
+  .eyebrow {
+    font-size: 8.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 6px;
+  }
+  .lede { color: var(--muted); max-width: 60ch; margin-top: 8px; }
+  .stamp {
+    text-align: right;
+    font-size: 9pt;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .stamp b { color: var(--ink); font-weight: 600; }
+
+  /* ---- key numbers ---- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .tile {
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--amber);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: grid;
+    gap: 2px;
+    break-inside: avoid;
+  }
+  .tile .label { font-size: 8.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .tile .big { font-size: 22pt; font-weight: 700; font-family: "Poppins", sans-serif; line-height: 1.1; }
+  .tile .big small { font-size: 11pt; font-weight: 600; color: var(--muted); margin-left: 3px; }
+  .tile .sub { font-size: 9pt; color: var(--muted); }
+
+  section { margin-top: 26px; break-inside: avoid; }
+  section.page-break { break-before: page; margin-top: 0; }
+  .sec-head {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .sec-head .n {
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--amber);
+    font-weight: 500;
+    font-size: 10pt;
+  }
+  .sec-head p { grid-column: 2; color: var(--muted); font-size: 10.5pt; max-width: 66ch; }
+
+  /* ---- flow ---- */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    align-items: stretch;
+  }
+  .fnode {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 9px;
+    display: grid;
+    gap: 3px;
+    align-content: start;
+    background: var(--paper);
+    position: relative;
+  }
+  .fnode .k { font-size: 7.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .fnode .v { font-family: "Poppins", sans-serif; font-weight: 600; font-size: 10.5pt; }
+  .fnode .s { font-size: 8.5pt; color: var(--muted); line-height: 1.35; }
+  .fnode.money { border-color: var(--amber); background: var(--amber-wash); }
+  .fnode.money .k { color: var(--amber); }
+  .loop {
+    margin-top: 8px;
+    font-size: 9.5pt;
+    color: var(--muted);
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .loop b { color: var(--ink); font-weight: 600; }
+  .loop .arrow { color: var(--amber); font-weight: 700; }
+
+  /* ---- tables ---- */
+  table { border-collapse: collapse; width: 100%; font-size: 10.5pt; }
+  th, td { text-align: left; padding: 7px 10px; vertical-align: top; border-bottom: 1px solid var(--line); }
+  thead th {
+    font-size: 8.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    font-weight: 600; background: var(--wash); border-bottom: 1px solid var(--line-strong);
+  }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  tr.total td { font-weight: 600; border-top: 2px solid var(--ink); border-bottom: 0; }
+  tr.milestone td { background: var(--pitch-wash); }
+  tr.stop td { background: var(--ball-wash); }
+  .pill {
+    display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 8.5pt; font-weight: 600; line-height: 1.6; white-space: nowrap;
+  }
+  .pill.sold { background: var(--pitch-wash); color: var(--pitch); }
+  .pill.ret { background: var(--navy-wash); color: #2b4da6; }
+  .pill.unsold { background: var(--ball-wash); color: var(--ball); }
+  .pill.block { background: var(--ball-wash); color: var(--ball); }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .callout {
+    border-left: 4px solid var(--amber);
+    background: var(--amber-wash);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 10.5pt;
+    break-inside: avoid;
+  }
+  .callout.info { border-left-color: #2b4da6; background: var(--navy-wash); }
+  .callout b { font-weight: 600; }
+  .ladder {
+    display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+  }
+  .rung {
+    font-family: "IBM Plex Mono", monospace; font-size: 9.5pt;
+    border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; background: var(--paper);
+  }
+  .rung.base { border-color: var(--amber); background: var(--amber-wash); font-weight: 500; }
+  .rung.tier { border-color: var(--ink); font-weight: 500; }
+  .rung.dots { border: 0; color: var(--faint); }
+
+  .outcomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .outcome { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 4px; break-inside: avoid; }
+  .outcome h3 { display: flex; gap: 8px; align-items: center; }
+  .outcome p { font-size: 10pt; color: var(--muted); }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat { padding: 8px 10px; border-left: 2px solid var(--line-strong); display: grid; gap: 1px; break-inside: avoid; }
+  .stat .big { font-family: "Poppins", sans-serif; font-weight: 700; font-size: 16pt; line-height: 1.1; }
+  .stat .big small { font-size: 9.5pt; color: var(--muted); font-weight: 600; margin-left: 2px; }
+  .stat .label { font-size: 9pt; color: var(--muted); }
+
+  .footnote { margin-top: 26px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 9pt; color: var(--faint); max-width: 72ch; break-inside: avoid; }
+
+  @media (max-width: 640px) {
+    .tiles { grid-template-columns: 1fr 1fr; }
+    .flow { grid-template-columns: 1fr 1fr; }
+    .two, .outcomes, .stats { grid-template-columns: 1fr; }
+    .masthead { grid-template-columns: 1fr; align-items: start; }
+    .stamp { text-align: left; }
+  }
+</style>
+
+<div class="sheet">
+  <header class="masthead">
+    <div>
+      <div class="eyebrow">MedianV Premier League · Player auction</div>
+      <h1>MPL Auction Money Flow</h1>
+      <p class="lede">How the purse, base price and bids work from the moment a player comes under the hammer to the moment the money leaves a team's account.</p>
+    </div>
+    <div class="stamp">
+      <b>All prices in lakhs (L)</b><br>
+      100 L = 1 Cr<br>
+      Figures: Season 4 record
+    </div>
+  </header>
+
+  <div class="tiles">
+    <div class="tile">
+      <span class="label">Team purse</span>
+      <span class="big">200<small>L</small></span>
+      <span class="sub">= 2 Cr per franchise, for the whole auction</span>
+    </div>
+    <div class="tile">
+      <span class="label">Base price</span>
+      <span class="big">10<small>L</small></span>
+      <span class="sub">Same for every player. Bidding opens here</span>
+    </div>
+    <div class="tile">
+      <span class="label">Squad size</span>
+      <span class="big">11<small>max</small></span>
+      <span class="sub">Minimum 7. A full squad cannot bid</span>
+    </div>
+    <div class="tile">
+      <span class="label">Bid steps</span>
+      <span class="big">+1<small>/ +2 L</small></span>
+      <span class="sub">+1 L below 40 L, +2 L from 40 L up</span>
+    </div>
+  </div>
+
+  <!-- 1. Flow -->
+  <section>
+    <div class="sec-head">
+      <span class="n">01</span>
+      <h2>The flow, player by player</h2>
+      <p>Every player in the pool goes through the same seven beats. The money only moves at beat six.</p>
+    </div>
+    <div class="flow">
+      <div class="fnode"><span class="k">1</span><span class="v">Comes up</span><span class="s">Next player in the auction order appears on the console.</span></div>
+      <div class="fnode money"><span class="k">2</span><span class="v">Opening bid</span><span class="s">= base price, 10 L. Nobody has bid yet.</span></div>
+      <div class="fnode"><span class="k">3</span><span class="v">First bid</span><span class="s">A team bids 10 L and becomes the leader.</span></div>
+      <div class="fnode money"><span class="k">4</span><span class="v">Counter-bids</span><span class="s">Each new team adds one step: 11, 12, 13 … 40, 42, 44 …</span></div>
+      <div class="fnode"><span class="k">5</span><span class="v">Hammer</span><span class="s">Bidding stops. Operator calls Sold or Unsold.</span></div>
+      <div class="fnode money"><span class="k">6</span><span class="v">Purse debited</span><span class="s">Final bid leaves the winning team's purse. Squad +1.</span></div>
+      <div class="fnode"><span class="k">7</span><span class="v">Next player</span><span class="s">Repeat until the pool is empty or the auction is ended.</span></div>
+    </div>
+    <p class="loop"><span class="arrow">↻</span><span>Beats 3–4 repeat as long as teams keep bidding. A team's <b>Next bid</b> is always shown on the console before they tap.</span></p>
+  </section>
+
+  <!-- 2. Bidding ladder -->
+  <section>
+    <div class="sec-head">
+      <span class="n">02</span>
+      <h2>How the price climbs</h2>
+      <p>Bids move in fixed steps — nobody types an amount. Below 40 L each bid adds 1 L; at 40 L and above each bid adds 2 L.</p>
+    </div>
+    <div class="ladder" aria-label="Bid ladder">
+      <span class="rung base">10 open</span><span class="rung">11</span><span class="rung">12</span><span class="rung">13</span><span class="rung">14</span><span class="rung">15</span><span class="rung dots">…</span><span class="rung">37</span><span class="rung">38</span><span class="rung">39</span><span class="rung tier">40</span><span class="rung">42</span><span class="rung">44</span><span class="rung">46</span><span class="rung">48</span><span class="rung dots">…</span><span class="rung">80</span><span class="rung">82</span><span class="rung">84</span>
+    </div>
+    <div class="two" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Current bid</th><th class="num">Next bid adds</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Nobody has bid</td><td class="num">opens at base</td><td class="num">→ 10</td></tr>
+          <tr><td>10 L to 39 L</td><td class="num">+1 L</td><td class="num">27 → 28</td></tr>
+          <tr><td>40 L and above</td><td class="num">+2 L</td><td class="num">40 → 42 → 44</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <b>Why it matters:</b> reaching 40 L takes 30 bids from base; every bid after that costs 2 L. In Season 4, 9 of 44 auctioned players crossed 40 L, and the top price was 84 L — 22 bids past the 40 mark.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Outcomes -->
+  <section>
+    <div class="sec-head">
+      <span class="n">03</span>
+      <h2>Three ways a player leaves the block</h2>
+    </div>
+    <div class="outcomes">
+      <div class="outcome">
+        <h3><span class="dot" style="background:var(--pitch)"></span>Sold</h3>
+        <p>Goes to the leading team at the current bid. Purse, squad count and the player's team update together — all or nothing.</p>
+      </div>
+      <div class="outcome">
+        <h3><span class="dot" style="background:var(--ball)"></span>Unsold</h3>
+        <p>No team bid. Nothing is deducted. The player stays registered without a team and can be brought back in a later round or season.</p>
+      </div>
+      <div class="outcome">
+        <h3><span class="dot" style="background:#2b4da6"></span>Retained</h3>
+        <p>Kept by the team before the auction; never comes under the hammer. Counts toward the 11-player squad. Season 4 had 16 retained players.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Ledger -->
+  <section>
+    <div class="sec-head">
+      <span class="n">04</span>
+      <h2>One team's purse, start to finish</h2>
+      <p>A worked example with the Season 4 settings: 200 L purse, 10 L base, 11-player squad with 2 retained. Watch the purse column.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Player</th><th>How</th><th class="num">Bids</th><th class="num">Price</th><th class="num">Purse left</th><th class="num">Squad</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">1</td><td>Captain</td><td><span class="pill ret">Retained</span></td><td class="num">—</td><td class="num">0</td><td class="num">200</td><td class="num">1 / 11</td></tr>
+        <tr><td class="num">2</td><td>Vice-captain</td><td><span class="pill ret">Retained</span></td><td class="num">—</td><td class="num">0</td><td class="num">200</td><td class="num">2 / 11</td></tr>
+        <tr><td class="num">3</td><td>Marquee all-rounder</td><td><span class="pill sold">Sold</span> after a 4-team fight past 40</td><td class="num">34</td><td class="num">46</td><td class="num">154</td><td class="num">3 / 11</td></tr>
+        <tr><td class="num">4</td><td>Opening batter</td><td><span class="pill sold">Sold</span> at base — no counter-bid</td><td class="num">1</td><td class="num">10</td><td class="num">144</td><td class="num">4 / 11</td></tr>
+        <tr><td class="num">5</td><td>Wicket-keeper</td><td><span class="pill sold">Sold</span></td><td class="num">18</td><td class="num">27</td><td class="num">117</td><td class="num">5 / 11</td></tr>
+        <tr><td class="num">6</td><td>Fast bowler</td><td><span class="pill sold">Sold</span></td><td class="num">12</td><td class="num">21</td><td class="num">96</td><td class="num">6 / 11</td></tr>
+        <tr class="milestone"><td class="num">7</td><td>Spinner</td><td><span class="pill sold">Sold</span> — minimum squad of 7 reached</td><td class="num">8</td><td class="num">17</td><td class="num">79</td><td class="num">7 / 11</td></tr>
+        <tr><td class="num">8</td><td>Middle-order batter</td><td><span class="pill sold">Sold</span></td><td class="num">21</td><td class="num">30</td><td class="num">49</td><td class="num">8 / 11</td></tr>
+        <tr><td class="num">9</td><td>All-rounder</td><td><span class="pill sold">Sold</span></td><td class="num">13</td><td class="num">22</td><td class="num">27</td><td class="num">9 / 11</td></tr>
+        <tr><td class="num">10</td><td>Bowler</td><td><span class="pill sold">Sold</span></td><td class="num">3</td><td class="num">12</td><td class="num">15</td><td class="num">10 / 11</td></tr>
+        <tr class="stop"><td class="num">11</td><td>Batter</td><td><span class="pill sold">Sold</span> — squad full, team card greys out</td><td class="num">2</td><td class="num">11</td><td class="num">4</td><td class="num">11 / 11</td></tr>
+        <tr class="total"><td></td><td colspan="3">Spent on 9 auctioned players</td><td class="num">196</td><td class="num">4 left</td><td class="num">11 / 11</td></tr>
+      </tbody>
+    </table>
+    <div class="two" style="margin-top:14px">
+      <div class="callout info">
+        <b>Reading the Bids column:</b> the count of taps it took to reach that price. Player 3 went 10 → 39 (30 taps at +1) then 40, 42, 44, 46 (4 taps at +2) = 34 bids across the competing teams.
+      </div>
+      <div class="callout">
+        <b>Owner's rule of thumb (not enforced by the system):</b> keep <span class="mono">base price × slots still needed to reach 7</span> in reserve. At row 5 this team had 117 L and needed 2 more players, so 20 L was untouchable and its real ceiling on the next player was 97 L.
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Blocks -->
+  <section>
+    <div class="sec-head">
+      <span class="n">05</span>
+      <h2>When a team cannot bid</h2>
+      <p>The server checks every bid. On the console the team's card greys out and shows the reason — there is no way to overspend by mistake.</p>
+    </div>
+    <table>
+      <thead><tr><th>Situation</th><th>What the console shows</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td>Next bid is more than the purse left</td><td><span class="pill block">Not enough purse</span></td><td>With 15 L left a team cannot bid 16 L. It can still bid on a cheaper player.</td></tr>
+        <tr><td>Squad already at 11</td><td><span class="pill block">Squad full</span></td><td>Purse left is irrelevant — the team is out of the auction.</td></tr>
+        <tr><td>Team already holds the high bid</td><td><span class="pill block">Leading</span></td><td>You cannot bid against yourself. Wait for another team to counter.</td></tr>
+        <tr><td>Team marked Inactive by the admin</td><td><span class="pill block">Not active</span></td><td>The franchise is not part of this auction.</td></tr>
+        <tr><td>Auction paused or not started</td><td>All team cards disabled</td><td>Bidding reopens when the operator resumes.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 6. Season 4 -->
+  <section>
+    <div class="sec-head">
+      <span class="n">06</span>
+      <h2>Season 4 in numbers</h2>
+      <p>The last completed auction, from the league record. Six franchises, 60 squad places, 44 filled by bidding.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="big">1,096<small>L</small></span><span class="label">total spent by 6 teams (≈ 10.96 Cr of 12 Cr available)</span></div>
+      <div class="stat"><span class="big">24.9<small>L</small></span><span class="label">average price of an auctioned player</span></div>
+      <div class="stat"><span class="big">84<small>L</small></span><span class="label">top price — Raj Keshkar, then 82 L, 78 L, 78 L</span></div>
+      <div class="stat"><span class="big">10<small>of 44</small></span><span class="label">players went at base price, 10 L</span></div>
+      <div class="stat"><span class="big">16</span><span class="label">players retained without going to auction</span></div>
+      <div class="stat"><span class="big">0<small>L</small></span><span class="label">Alpha Legacy Legends' purse at the end — spent all 200</span></div>
+    </div>
+    <table style="margin-top:14px">
+      <thead><tr><th>Franchise</th><th class="num">Spent</th><th class="num">Purse left</th></tr></thead>
+      <tbody>
+        <tr><td>Alpha Legacy Legends (ALL)</td><td class="num">200</td><td class="num">0</td></tr>
+        <tr><td>Storm Breakers (SB)</td><td class="num">199</td><td class="num">1</td></tr>
+        <tr><td>Viking Raiders (VR)</td><td class="num">193</td><td class="num">7</td></tr>
+        <tr><td>Game Changers (GC)</td><td class="num">189</td><td class="num">11</td></tr>
+        <tr><td>Knight Hunters (KH)</td><td class="num">179</td><td class="num">21</td></tr>
+        <tr><td>Royal Vikings (RV)</td><td class="num">136</td><td class="num">64</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <p class="footnote">
+    Purse, base price, squad limits, bid timer and increment tiers are set per auction in the admin panel (Auctions → New auction; Teams → purse and squad limits) and can differ from the Season 4 values shown here. Season 4 figures are taken from the league's seeded auction record. Sales are recorded in a single transaction: the player, the purse debit and the squad entry are written together or not at all.
+  </p>
+</div>
+
+</html>

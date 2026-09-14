@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  BookOpen,
   Gavel,
   LayoutDashboard,
   LogOut,
@@ -33,6 +34,7 @@ const NAV = [
   { href: "/results", label: "Results", icon: ClipboardList },
   { href: "/statistics", label: "Statistics", icon: ChartBar },
   { href: "/admins", label: "Admins", icon: Shield, superAdminOnly: true },
+  { href: "/docs", label: "Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedianV Auction Admin Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f3f4f8;
+    --surface: #ffffff;
+    --surface-2: #e9ecf3;
+    --text: #131a2c;
+    --muted: #5b6478;
+    --faint: #8b93a7;
+    --line: #d9dde8;
+    --line-strong: #b9c0d1;
+    --amber: #d98b0f;
+    --amber-soft: #fbf1dc;
+    --on-amber: #1a1200;
+    --pitch: #1f9a5a;
+    --pitch-soft: #e1f5ea;
+    --ball: #d13b40;
+    --ball-soft: #fbe4e5;
+    --info: #2d5bd9;
+    --info-soft: #e4ebfb;
+    --shadow: 0 1px 2px rgba(19, 26, 44, 0.06), 0 8px 24px rgba(19, 26, 44, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0e1424;
+      --surface: #151c2e;
+      --surface-2: #1c2438;
+      --text: #e8ebf3;
+      --muted: #98a1b8;
+      --faint: #6b748b;
+      --line: #26304a;
+      --line-strong: #364160;
+      --amber: #f5a524;
+      --amber-soft: #2a2312;
+      --on-amber: #14100a;
+      --pitch: #2fbf71;
+      --pitch-soft: #12291d;
+      --ball: #e5484d;
+      --ball-soft: #2c1517;
+      --info: #7ea2ff;
+      --info-soft: #172239;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0e1424;
+    --surface: #151c2e;
+    --surface-2: #1c2438;
+    --text: #e8ebf3;
+    --muted: #98a1b8;
+    --faint: #6b748b;
+    --line: #26304a;
+    --line-strong: #364160;
+    --amber: #f5a524;
+    --amber-soft: #2a2312;
+    --on-amber: #14100a;
+    --pitch: #2fbf71;
+    --pitch-soft: #12291d;
+    --ball: #e5484d;
+    --ball-soft: #2c1517;
+    --info: #7ea2ff;
+    --info-soft: #172239;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--text);
+    font-family: "IBM Plex Sans", "Segoe UI", Roboto, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: "Poppins", "Segoe UI", Roboto, system-ui, sans-serif;
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  h1 { font-size: clamp(1.9rem, 1.3rem + 2.2vw, 2.8rem); font-weight: 700; }
+  h2 { font-size: 1.45rem; }
+  h3 { font-size: 1.05rem; }
+  p { margin: 0; }
+  a { color: var(--amber); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; border-radius: 4px; }
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 0.92em;
+  }
+  code {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.08em 0.4em;
+  }
+  strong { font-weight: 600; }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: clamp(16px, 4vw, 40px);
+    padding-block: clamp(24px, 4vw, 48px);
+  }
+
+  /* ---------- Header ---------- */
+  .masthead {
+    display: grid;
+    gap: 14px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .lede {
+    max-width: 62ch;
+    font-size: 1.08rem;
+    color: var(--muted);
+  }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .fact {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: grid;
+    gap: 4px;
+  }
+  .fact .label {
+    font-size: 0.74rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .fact .value { font-weight: 500; }
+  .fact .note { font-size: 0.82rem; color: var(--faint); }
+
+  /* ---------- Layout: map + steps ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-top: 28px;
+  }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: 232px minmax(0, 1fr); gap: 44px; }
+    .map { position: sticky; top: 20px; align-self: start; }
+  }
+  .map {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+  }
+  .map .map-title {
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .map a {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 10px;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text);
+    padding: 7px 8px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  .map a:hover { background: var(--surface-2); }
+  .map .num {
+    width: 26px; height: 26px;
+    display: grid; place-items: center;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  @media (max-width: 999px) {
+    .map { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .map .map-title { grid-column: 1 / -1; }
+  }
+
+  .steps { display: grid; gap: 44px; min-width: 0; }
+
+  /* ---------- Flow diagram ---------- */
+  .flow-panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 22px 18px;
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 16px;
+  }
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 6px;
+    align-items: stretch;
+  }
+  .node {
+    display: grid;
+    gap: 2px;
+    background: var(--ground);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 128px;
+    flex: 1 1 128px;
+  }
+  .node .k {
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .node .v { font-weight: 600; font-family: "Poppins", sans-serif; font-size: 0.98rem; }
+  .node .s { font-size: 0.82rem; color: var(--muted); }
+  .node.live { border-color: var(--amber); background: var(--amber-soft); }
+  .arrow {
+    align-self: center;
+    color: var(--faint);
+    font-size: 1.1rem;
+    padding: 0 2px;
+    flex: 0 0 auto;
+  }
+  .rule {
+    display: grid;
+    grid-template-columns: 4px 1fr;
+    gap: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--info-soft);
+  }
+  .rule::before { content: ""; background: var(--info); }
+  .rule > div { padding: 10px 14px 10px 6px; font-size: 0.95rem; }
+  .rule.warn { background: var(--amber-soft); }
+  .rule.warn::before { background: var(--amber); }
+
+  /* ---------- Step sections ---------- */
+  .step { display: grid; gap: 18px; min-width: 0; scroll-margin-top: 16px; }
+  .step-head {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .step-num {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: 12px;
+    background: var(--amber);
+    color: var(--on-amber);
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .step-head .where {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .step-head .where code { font-size: 0.82rem; }
+  .step p.intro { max-width: 66ch; color: var(--muted); }
+
+  ol.actions {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    counter-reset: act;
+    max-width: 70ch;
+  }
+  ol.actions li {
+    counter-increment: act;
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 10px;
+    align-items: baseline;
+  }
+  ol.actions li::before {
+    content: counter(act);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.82rem;
+    color: var(--amber);
+    font-weight: 500;
+    text-align: right;
+  }
+  .ui {
+    display: inline-block;
+    padding: 0 0.45em;
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    background: var(--surface);
+    font-weight: 500;
+    font-size: 0.94em;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .ui.primary { background: var(--amber); color: var(--on-amber); border-color: var(--amber); }
+  .ui.sell { background: var(--pitch); color: #fff; border-color: var(--pitch); }
+  .ui.unsold { background: var(--ball); color: #fff; border-color: var(--ball); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 10px 14px; vertical-align: top; border-top: 1px solid var(--line); }
+  thead th {
+    border-top: 0;
+    font-size: 0.74rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    background: var(--surface-2);
+  }
+  td:first-child { font-weight: 500; white-space: nowrap; }
+  td .req { color: var(--ball); font-weight: 600; }
+  td .default { color: var(--faint); font-size: 0.86rem; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  figure {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+  figure img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid var(--line-strong);
+    background: #0e1424;
+  }
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--muted);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: baseline;
+  }
+  figcaption .tag {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.74rem;
+    color: var(--amber);
+    font-weight: 500;
+  }
+  .shots-2 { display: grid; gap: 18px; }
+  @media (min-width: 760px) { .shots-2 { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- Rules + troubleshooting ---------- */
+  .cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: grid;
+    gap: 6px;
+  }
+  .card h3 { font-size: 0.98rem; }
+  .card p { font-size: 0.93rem; color: var(--muted); }
+  .card .sym { font-weight: 600; color: var(--text); }
+
+  .footer {
+    border-top: 1px solid var(--line);
+    margin-top: 48px;
+    padding-top: 18px;
+    font-size: 0.85rem;
+    color: var(--faint);
+    max-width: 70ch;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  /* ---------- Print / PDF ---------- */
+  @media print {
+    :root, :root[data-theme="dark"], :root:not([data-theme="light"]) {
+      --ground: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f1f3f8;
+      --text: #131a2c;
+      --muted: #5b6478;
+      --faint: #8b93a7;
+      --line: #d5d9e3;
+      --line-strong: #b4bccd;
+      --amber: #d98b0f;
+      --amber-soft: #fbf1dc;
+      --on-amber: #1a1200;
+      --pitch: #1f9a5a;
+      --pitch-soft: #e1f5ea;
+      --ball: #c93a3f;
+      --ball-soft: #fbe4e5;
+      --info: #2b4da6;
+      --info-soft: #e6ebf7;
+      --shadow: none;
+    }
+    body { font-size: 10.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .wrap { max-width: none; padding: 0; }
+    .map, .download { display: none !important; }
+    .layout { display: block; padding-top: 18px; }
+    .steps { display: block; }
+    .step { display: block; break-before: page; }
+    #flow { break-before: auto; }
+    .step > * + * { margin-top: 14px; }
+    .step-head { break-after: avoid; }
+    .facts { grid-template-columns: 1fr 1fr; }
+    .flow-panel { box-shadow: none; }
+    figure, .table-wrap, .card, .rule, .fact { break-inside: avoid; }
+    figure img { border-radius: 4px; }
+    .shots-2 { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: 1fr 1fr; }
+    a { color: inherit; text-decoration: none; }
+    .footer { margin-top: 24px; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">MedianV Premier League · Admin panel</div>
+    <h1>MedianV Auction Admin Guide</h1>
+    <p class="lede">
+      How to set up a season in the admin panel — tournament, franchises, player pool — and then run the
+      live player auction from the console. Every screen below is a real screenshot from the app.
+    </p>
+    <div class="facts">
+      <div class="fact">
+        <span class="label">Admin URL</span>
+        <span class="value mono">http://localhost:3000</span>
+        <span class="note">API on port 3005. Use your deployed URL in production.</span>
+      </div>
+      <div class="fact">
+        <span class="label">Super admin (dev seed)</span>
+        <span class="value mono">admin@medianv.com</span>
+        <span class="note">Password <span class="mono">Admin@12345</span> — change before going live.</span>
+      </div>
+      <div class="fact">
+        <span class="label">Auction operator (dev seed)</span>
+        <span class="value mono">operator@medianv.com</span>
+        <span class="note">Password <span class="mono">Operator@12345</span> — can run auctions.</span>
+      </div>
+      <div class="fact">
+        <span class="label">Money units</span>
+        <span class="value">Everything is entered in lakhs</span>
+        <span class="note">100 L = 1 Cr. Season 4 franchises ran on a 200 L (2 Cr) purse.</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="map" aria-label="Steps">
+      <div class="map-title">On this page</div>
+      <a href="#flow"><span class="num">→</span><span>The flow at a glance</span></a>
+      <a href="#step-1"><span class="num">1</span><span>Sign in</span></a>
+      <a href="#step-2"><span class="num">2</span><span>Create the tournament</span></a>
+      <a href="#step-3"><span class="num">3</span><span>Create the teams</span></a>
+      <a href="#step-4"><span class="num">4</span><span>Register players</span></a>
+      <a href="#step-5"><span class="num">5</span><span>Create the auction</span></a>
+      <a href="#step-6"><span class="num">6</span><span>Build the player pool</span></a>
+      <a href="#step-7"><span class="num">7</span><span>Run the auction live</span></a>
+      <a href="#step-8"><span class="num">8</span><span>Check the results</span></a>
+      <a href="#rules"><span class="num">§</span><span>Bidding rules</span></a>
+      <a href="#fix"><span class="num">?</span><span>If something looks wrong</span></a>
+    </nav>
+
+    <main class="steps">
+
+      <!-- ============ FLOW ============ -->
+      <section class="step" id="flow">
+        <div class="flow-panel">
+          <div>
+            <h2>The flow at a glance</h2>
+            <p class="intro" style="margin-top:6px">
+              Do the setup in this order. Teams and the auction both hang off a tournament, so the
+              tournament must exist first.
+            </p>
+          </div>
+          <div class="flow" aria-label="Order of operations">
+            <div class="node"><span class="k">Setup</span><span class="v">Tournament</span><span class="s">Season, dates, venue</span></div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="node"><span class="k">Setup</span><span class="v">Teams</span><span class="s">Purse + squad limits, per tournament</span></div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="node"><span class="k">Setup</span><span class="v">Players</span><span class="s">Role, base price — shared pool</span></div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="node"><span class="k">Setup</span><span class="v">Auction</span><span class="s">Increments, timer, squad cap</span></div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="node"><span class="k">Setup</span><span class="v">Player pool</span><span class="s">Pick who goes under the hammer</span></div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="node live"><span class="k">Live</span><span class="v">Console</span><span class="s">Start → bid → Sell / Unsold → next</span></div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="node"><span class="k">After</span><span class="v">Results</span><span class="s">Who went for how much</span></div>
+          </div>
+          <div class="rule warn">
+            <div>
+              <strong>One rule that trips people up:</strong> the console only shows teams that belong to the
+              <em>same tournament</em> as the auction. If the Teams panel is empty during a live auction,
+              the teams were attached to a different tournament.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ STEP 1 ============ -->
+      <section class="step" id="step-1">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div>
+            <h2>Sign in</h2>
+            <p class="where">Page: <code>/login</code></p>
+          </div>
+        </div>
+        <ol class="actions">
+          <li>Open the admin URL. You land on the sign-in screen.</li>
+          <li>Enter your <span class="ui">Email</span> and <span class="ui">Password</span>.</li>
+          <li>Click <span class="ui primary">Sign in</span>. You are taken to the Dashboard.</li>
+        </ol>
+        <div class="shots-2">
+          <figure>
+            <img src="shots/01-login-page.png" alt="MedianV Auction sign-in screen with email and password fields" width="1440" height="900">
+            <figcaption><span class="tag">1.1</span><span>The sign-in screen.</span></figcaption>
+          </figure>
+          <figure>
+            <img src="shots/02-dashboard.png" alt="Dashboard after signing in, with the left navigation" width="1440" height="900" loading="lazy">
+            <figcaption><span class="tag">1.2</span><span>Dashboard. Everything in this guide is reached from the left navigation.</span></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- ============ STEP 2 ============ -->
+      <section class="step" id="step-2">
+        <div class="step-head">
+          <div class="step-num">2</div>
+          <div>
+            <h2>Create the tournament</h2>
+            <p class="where">Page: <code>Tournaments</code> in the left nav</p>
+          </div>
+        </div>
+        <p class="intro">A tournament is one season. Teams and the auction are both attached to it, so create it first.</p>
+        <ol class="actions">
+          <li>Click <span class="ui">Tournaments</span> in the left nav.</li>
+          <li>Click <span class="ui primary">+ New tournament</span> (top right).</li>
+          <li>Fill in the form — only the name is required, but series and season details help group seasons across years.</li>
+          <li>Click <span class="ui primary">Create tournament</span>. The new season appears as a card in the list.</li>
+        </ol>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+            <tbody>
+              <tr><td>Tournament name <span class="req">*</span></td><td>Full name, e.g. <em>MedianV Premier League Season 5</em></td></tr>
+              <tr><td>Short name</td><td>Used where space is tight, e.g. <em>MPL S5</em></td></tr>
+              <tr><td>Series name / Season name / Season number</td><td>Groups seasons of the same league — <em>MedianV Premier League</em> / <em>Season 5</em> / <em>5</em></td></tr>
+              <tr><td>Location</td><td>Venue city, e.g. <em>Ahmedabad, Gujarat</em></td></tr>
+              <tr><td>Start date / End date</td><td>End date cannot be before the start date</td></tr>
+              <tr><td>Status</td><td>Upcoming / Ongoing / Completed <span class="default">— default Upcoming</span></td></tr>
+              <tr><td>Description</td><td>Optional notes: format, participating teams</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure>
+          <img src="shots/04-tournament-modal-filled.png" alt="New tournament form filled in for MedianV Premier League Season 5" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">2.1</span><span>The New tournament form, filled in for Season 5.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/05-tournaments-list-with-new.png" alt="Tournaments list showing Season 4 and the newly created Season 5" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">2.2</span><span>After saving: Season 5 sits beside Season 4 in the list.</span></figcaption>
+        </figure>
+      </section>
+
+      <!-- ============ STEP 3 ============ -->
+      <section class="step" id="step-3">
+        <div class="step-head">
+          <div class="step-num">3</div>
+          <div>
+            <h2>Create the teams</h2>
+            <p class="where">Page: <code>Teams</code> in the left nav</p>
+          </div>
+        </div>
+        <p class="intro">One team per franchise. Set the purse and squad limits here — the auction console enforces them during bidding. Repeat for every franchise in the season.</p>
+        <ol class="actions">
+          <li>Click <span class="ui">Teams</span> in the left nav.</li>
+          <li>Click <span class="ui primary">+ New team</span>.</li>
+          <li>Enter the team details (table below). Pick the <strong>Tournament</strong> you created in step 2.</li>
+          <li>Click <span class="ui primary">Create team</span>. The team card shows its purse and player count.</li>
+          <li>Repeat for each franchise.</li>
+        </ol>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+            <tbody>
+              <tr><td>Team name <span class="req">*</span></td><td>Franchise name, e.g. <em>Sample Strikers</em></td></tr>
+              <tr><td>Short name</td><td>Up to 8 characters; shown on scorecards and the auction board, e.g. <em>SSK</em></td></tr>
+              <tr><td>Owner</td><td>Who runs the franchise</td></tr>
+              <tr><td>Team colour</td><td>Hex colour for the crest and purse bar, e.g. <span class="mono">#f5a524</span></td></tr>
+              <tr><td>Purse (lakhs) <span class="req">*</span></td><td class="num">Total budget in lakhs. <em>200</em> = 2 Cr (Season 4 purse); <em>1000</em> = 10 Cr <span class="default">— default 1000</span></td></tr>
+              <tr><td>Max players</td><td class="num">Squad ceiling <span class="default">— default 18</span></td></tr>
+              <tr><td>Min players</td><td class="num">Squad floor; must not exceed Max <span class="default">— default 11</span></td></tr>
+              <tr><td>Tournament <span class="req">*</span></td><td>The season this team plays in — <strong>must match the auction's tournament</strong></td></tr>
+              <tr><td>Status</td><td>Active / Inactive. Inactive teams cannot bid <span class="default">— default Active</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure>
+          <img src="shots/07-team-modal-filled.png" alt="New team form filled in for Sample Strikers with purse and squad limits" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">3.1</span><span>New team form: 1000 L purse, 18 max / 11 min players, attached to Season 5.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/08-teams-list-with-new.png" alt="Teams list with the six Season 4 franchises and the new Sample Strikers card showing a 10 Cr purse" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">3.2</span><span>Team cards show purse left, spend, and squad size. Sample Strikers: 10 Cr, 0/18 players.</span></figcaption>
+        </figure>
+      </section>
+
+      <!-- ============ STEP 4 ============ -->
+      <section class="step" id="step-4">
+        <div class="step-head">
+          <div class="step-num">4</div>
+          <div>
+            <h2>Register players</h2>
+            <p class="where">Page: <code>Players</code> in the left nav</p>
+          </div>
+        </div>
+        <p class="intro">Players are a shared pool — they are not tied to a tournament. A player only needs to be registered once, then can be entered into any auction.</p>
+        <ol class="actions">
+          <li>Click <span class="ui">Players</span> in the left nav.</li>
+          <li>Click <span class="ui primary">+ Add player</span>.</li>
+          <li>Enter the player's details. Role and base price are what matter in the auction.</li>
+          <li>Leave <strong>Active — available to be entered into auctions</strong> ticked.</li>
+          <li>Click <span class="ui primary">Add player</span>. Repeat for every registered player.</li>
+        </ol>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+            <tbody>
+              <tr><td>Full name <span class="req">*</span></td><td>e.g. <em>Arjun Mehta</em></td></tr>
+              <tr><td>Role <span class="req">*</span></td><td>Batter / Bowler / All-rounder / Wicket-keeper</td></tr>
+              <tr><td>Category</td><td>Local / International <span class="default">— default Local</span></td></tr>
+              <tr><td>Base price (lakhs) <span class="req">*</span></td><td class="num">Opening bid when the player comes up <span class="default">— default 20</span></td></tr>
+              <tr><td>Batting style / Bowling style</td><td>e.g. <em>Right-hand bat</em> / <em>Right-arm medium</em></td></tr>
+              <tr><td>Date of birth</td><td>Optional</td></tr>
+              <tr><td>Profile image URL</td><td>Full <span class="mono">https://</span> link to a photo, or blank</td></tr>
+              <tr><td>External profile URL</td><td>Cricinfo, Cricbuzz or CricHeroes link, or blank</td></tr>
+              <tr><td>Active</td><td>Ticked = can be added to an auction pool. Untick to bench a player</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure>
+          <img src="shots/10-player-modal-filled.png" alt="Add player form filled in for Arjun Mehta, all-rounder, base price 20 lakhs" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">4.1</span><span>Add player form: all-rounder, local, 20 L base price.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/11-players-list-with-new.png" alt="Players list with the new player added" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">4.2</span><span>The players list. Filter by role, team or status; search by name.</span></figcaption>
+        </figure>
+      </section>
+
+      <!-- ============ STEP 5 ============ -->
+      <section class="step" id="step-5">
+        <div class="step-head">
+          <div class="step-num">5</div>
+          <div>
+            <h2>Create the auction</h2>
+            <p class="where">Page: <code>Auctions</code> in the left nav</p>
+          </div>
+        </div>
+        <p class="intro">The auction holds the bidding rules. Increments and squad limits are enforced by the server — the console never trusts the browser with the arithmetic.</p>
+        <ol class="actions">
+          <li>Click <span class="ui">Auctions</span> in the left nav.</li>
+          <li>Click <span class="ui primary">+ New auction</span>.</li>
+          <li>Name it and choose the <strong>Tournament</strong> from step 2 — the same one the teams are attached to.</li>
+          <li>Set the squad sizes, timer and bid increments (table below).</li>
+          <li>Click <span class="ui primary">Create auction</span>. It appears as a <strong>Draft</strong> card.</li>
+        </ol>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+            <tbody>
+              <tr><td>Auction name <span class="req">*</span></td><td>e.g. <em>MPL Season 5 Auction</em></td></tr>
+              <tr><td>Tournament <span class="req">*</span></td><td>The season being auctioned — decides which teams can bid</td></tr>
+              <tr><td>Maximum squad size</td><td class="num">A team cannot buy beyond this <span class="default">— default 11</span></td></tr>
+              <tr><td>Minimum squad size</td><td class="num">Squad floor for the season <span class="default">— default 0</span></td></tr>
+              <tr><td>Bid timer (seconds)</td><td class="num">Countdown per player. <em>0</em> = no countdown <span class="default">— default 30</span></td></tr>
+              <tr><td>Bid increments: Increment</td><td class="num">How much each bid rises by at first <span class="default">— default 1 L</span></td></tr>
+              <tr><td>Bid increments: Above</td><td class="num">Threshold where the bigger step kicks in <span class="default">— default 40 L</span></td></tr>
+              <tr><td>Bid increments: Rises by</td><td class="num">Step size above the threshold <span class="default">— default 2 L</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="rule">
+          <div>With the defaults, bidding on a 10 L player goes 10 → 11 → 12 … → 40, then 42 → 44 → 46 and so on.</div>
+        </div>
+        <figure>
+          <img src="shots/13-auction-modal-filled.png" alt="New auction form with squad sizes, bid timer and tiered bid increments" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">5.1</span><span>New auction form: 18 / 11 squad, 30-second timer, 1 L increments rising to 2 L above 40 L.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/14-auctions-list-with-new.png" alt="Auctions list with the new Draft auction card alongside the completed Season 4 auction" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">5.2</span><span>Each auction card has two buttons: <strong>Console</strong> (run it) and <strong>Players</strong> (build the pool).</span></figcaption>
+        </figure>
+      </section>
+
+      <!-- ============ STEP 6 ============ -->
+      <section class="step" id="step-6">
+        <div class="step-head">
+          <div class="step-num">6</div>
+          <div>
+            <h2>Build the player pool</h2>
+            <p class="where">Page: an auction card → <code>Players</code></p>
+          </div>
+        </div>
+        <p class="intro">The pool is the list of players who will come under the hammer, in order. Only active players who are not already in the pool are offered.</p>
+        <ol class="actions">
+          <li>On the auction card, click <span class="ui">Players</span>.</li>
+          <li>Click <span class="ui primary">Add players</span>.</li>
+          <li>Search or filter by role, then tick every player to include. The button counts your selection.</li>
+          <li>Click <span class="ui primary">Add N players</span>.</li>
+          <li>The <strong>Auction order</strong> list is the order players come up. Use the trash icon to remove a player before they are sold.</li>
+          <li>When the pool is ready, click <span class="ui">Open console</span>.</li>
+        </ol>
+        <figure>
+          <img src="shots/15-auction-setup-empty.png" alt="Auction player pool page before any players are added, with counters at zero" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">6.1</span><span>Empty pool. The four counters track In the pool / Still to come / Sold / Unsold.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/16-auction-setup-add-modal.png" alt="Add players dialog with eight players ticked and a button reading Add 8 players" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">6.2</span><span>Tick players; the button reads <em>Add 8 players</em>. Each row shows role and base price.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/17-auction-setup-populated.png" alt="Auction order list with eight pending players numbered 1 to 8" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">6.3</span><span>The pool after adding: 8 in the pool, 8 still to come, each marked Pending.</span></figcaption>
+        </figure>
+      </section>
+
+      <!-- ============ STEP 7 ============ -->
+      <section class="step" id="step-7">
+        <div class="step-head">
+          <div class="step-num">7</div>
+          <div>
+            <h2>Run the auction live</h2>
+            <p class="where">Page: an auction card → <code>Console</code></p>
+          </div>
+        </div>
+        <p class="intro">The console has three columns: the player under the hammer (left), the bid figure with Sell / Unsold (centre), and the teams that can bid (right). Every action is a single click.</p>
+        <ol class="actions">
+          <li>Click <span class="ui primary">Start auction</span> (top right). The badge turns <strong>Live</strong>.</li>
+          <li>Click <span class="ui primary">Next player</span>. The first player in the order comes up with their <strong>Opening bid</strong> = base price.</li>
+          <li>To record a bid, <strong>tap the team's card</strong> in the Teams panel. Its purse and the current bid update; the team is marked <em>Leading</em>.</li>
+          <li>Keep tapping teams as they outbid each other. The <strong>Next bid</strong> figure shows what the next tap will cost.</li>
+          <li>When bidding stops, click <span class="ui sell">Sell</span> — the player goes to the leading team at the current bid, and the team's purse and squad count update.</li>
+          <li>If nobody bids, click <span class="ui unsold">Unsold</span>.</li>
+          <li>Click <span class="ui">Bring up next player</span> (or <span class="ui">Skip to next player</span>) to continue. Use <span class="ui">Queue</span> to pick a specific player out of order.</li>
+          <li>Use <span class="ui">Pause</span> / <span class="ui">Resume</span> for breaks — bids are blocked while paused.</li>
+          <li>When done, click <span class="ui">End</span> and confirm. Players still in the queue stay unsold.</li>
+        </ol>
+        <figure>
+          <img src="shots/18-auction-console-draft.png" alt="Auction console in Draft state with the Start auction button and the team panel showing Sample Strikers" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">7.1</span><span>Draft console. The one team attached to this tournament is already listed; nobody is up yet.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/19-auction-console-live.png" alt="Live console with Aayush Pandey up, opening bid 10 L, waiting for the first bid" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">7.2</span><span>Live. Aayush Pandey is up at a 10 L opening bid. The Teams panel says <em>Tap a team to bid 10 L</em>.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/20-auction-console-bid-placed.png" alt="Console after a bid: current bid 10 L, Sample Strikers leading, next bid 11 L, bid history shows the bid" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">7.3</span><span>After one tap: current bid 10 L, Sample Strikers <em>Leading</em>, next bid 11 L. Sell is now enabled.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="shots/21-auction-console-sold.png" alt="Console after selling: toast says Sold for 10 L, Sample Strikers purse is 9.90 Cr with 1 of 18 players, Next player button shown" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">7.4</span><span>Sold for 10 L. Sample Strikers now shows 9.90 Cr and 1/18 players. Click <em>Next player</em> to continue.</span></figcaption>
+        </figure>
+      </section>
+
+      <!-- ============ STEP 8 ============ -->
+      <section class="step" id="step-8">
+        <div class="step-head">
+          <div class="step-num">8</div>
+          <div>
+            <h2>Check the results</h2>
+            <p class="where">Page: <code>Results</code> in the left nav, or the <code>Results</code> button on the console</p>
+          </div>
+        </div>
+        <ol class="actions">
+          <li>Click <span class="ui">Results</span>.</li>
+          <li>Choose the auction in the <strong>Auction</strong> dropdown; filter by team or role if needed.</li>
+          <li>Switch between the <strong>Sold</strong>, <strong>Unsold</strong> and <strong>Team-wise</strong> tabs.</li>
+        </ol>
+        <figure>
+          <img src="shots/22-results-page.png" alt="Results page for MPL Season 5 Auction: 1 player sold, total spend 10 L, Aayush Pandey to Sample Strikers" width="1440" height="900" loading="lazy">
+          <figcaption><span class="tag">8.1</span><span>Results: players sold, total spend, highest and lowest buys, and the sold list with base and sold prices.</span></figcaption>
+        </figure>
+      </section>
+
+      <!-- ============ RULES ============ -->
+      <section class="step" id="rules">
+        <div>
+          <h2>Bidding rules the server enforces</h2>
+          <p class="intro" style="margin-top:6px">You cannot break these from the console — the button simply greys out and shows why.</p>
+        </div>
+        <div class="cards">
+          <div class="card"><h3>Opening bid = base price</h3><p>The first tap on a team records the player's base price. Every later tap adds the increment for the current level.</p></div>
+          <div class="card"><h3>Tiered increments</h3><p>Bids rise by the first increment until they pass the threshold, then by the larger step.</p></div>
+          <div class="card"><h3>Not enough purse</h3><p>A team whose remaining purse is below the next bid is greyed out.</p></div>
+          <div class="card"><h3>Squad full</h3><p>A team that has reached its max players (or the auction's squad cap, whichever is lower) cannot bid.</p></div>
+          <div class="card"><h3>Leading</h3><p>The team already holding the high bid cannot bid against itself.</p></div>
+          <div class="card"><h3>Sell needs a bid</h3><p><span class="sym">Sell</span> stays disabled until at least one bid is on the player. Use <span class="sym">Unsold</span> otherwise.</p></div>
+          <div class="card"><h3>Paused = no bids</h3><p>While paused, team cards are disabled. Resume to continue.</p></div>
+          <div class="card"><h3>Ending is final</h3><p>Once ended, no further bids. Anyone still in the queue is left unsold.</p></div>
+        </div>
+      </section>
+
+      <!-- ============ TROUBLESHOOTING ============ -->
+      <section class="step" id="fix">
+        <div>
+          <h2>If something looks wrong</h2>
+        </div>
+        <div class="cards">
+          <div class="card">
+            <h3>Teams panel is empty in the console</h3>
+            <p>The teams are attached to a different tournament than the auction. Open each team → Edit → set the Tournament to match the auction's.</p>
+          </div>
+          <div class="card">
+            <h3>A team card is greyed out</h3>
+            <p>Read the small label on the card: <span class="sym">Not active</span>, <span class="sym">Squad full</span>, <span class="sym">Not enough purse</span> or <span class="sym">Leading</span>.</p>
+          </div>
+          <div class="card">
+            <h3>Sell is disabled</h3>
+            <p>No bid has been placed yet. Tap a team first, or mark the player Unsold.</p>
+          </div>
+          <div class="card">
+            <h3>A player is missing from "Add players"</h3>
+            <p>Either the player is not Active (Players → Edit → tick Active) or they are already in this auction's pool.</p>
+          </div>
+          <div class="card">
+            <h3>"Reconnecting" next to the auction name</h3>
+            <p>The live update connection dropped. The console keeps polling every 5 seconds, so it still works — it just refreshes a little slower until it reconnects.</p>
+          </div>
+          <div class="card">
+            <h3>Wrong player came up</h3>
+            <p>Click <span class="sym">Queue</span> and pick the right one, or <span class="sym">Skip to next player</span>. A skipped player with no bids is left pending, not unsold.</p>
+          </div>
+        </div>
+      </section>
+
+      <p class="footer">
+        Screenshots were taken on the local development build (in-memory database, seeded with the Season 4 data)
+        while creating a demo Season 5, Sample Strikers, and one registered player. Names in the screenshots are
+        illustrative; the flow is identical in production.
+      </p>
+    </main>
+  </div>
+</div>
+
+</html>
