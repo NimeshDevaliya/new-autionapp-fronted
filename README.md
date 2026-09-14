@@ -87,6 +87,13 @@ scorecard at `/matches/[id]`. "Sync from CricHeroes" on the matches tab pulls
 the league's latest results from the scoring app and shows a report of what
 changed.
 
+## Images
+
+Team crests live in `public/team-logos/` and player photos in
+`public/player-photos/`, one file per player named after them. Both are
+referenced by path from the API's data, so they deploy with the frontend. The
+API's `npm run import:photos` fills the player folder from CricHeroes.
+
 ## Live auction screen
 
 The console keeps itself current over a WebSocket: when the server reports a

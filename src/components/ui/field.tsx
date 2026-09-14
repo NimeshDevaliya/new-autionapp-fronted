@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useId } from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const CONTROL_BASE =
@@ -88,6 +89,10 @@ export interface SelectProps
   error?: string;
 }
 
+/**
+ * Native select with the browser's arrow replaced by our own, positioned on the
+ * control itself so it stays centred whatever label or hint sits around it.
+ */
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, hint, error, id, required, children, ...props }, ref) => {
     const generatedId = useId();
@@ -101,16 +106,27 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         required={required}
         htmlFor={selectId}
       >
-        <select
-          ref={ref}
-          id={selectId}
-          required={required}
-          aria-invalid={error ? true : undefined}
-          className={cn(CONTROL_BASE, "h-11 pr-8", error && "border-ball", className)}
-          {...props}
-        >
-          {children}
-        </select>
+        <span className="relative block">
+          <select
+            ref={ref}
+            id={selectId}
+            required={required}
+            aria-invalid={error ? true : undefined}
+            className={cn(
+              CONTROL_BASE,
+              "h-11 appearance-none pr-10 cursor-pointer",
+              error && "border-ball",
+              className
+            )}
+            {...props}
+          >
+            {children}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted"
+            aria-hidden
+          />
+        </span>
       </Field>
     );
   }
