@@ -62,8 +62,10 @@ export function AuctionPlayerCard({
   );
 }
 
-export function BidHistory({ bids }: { bids: Bid[] }) {
-  if (bids.length === 0) {
+export function BidHistory({ bids, limit }: { bids: Bid[]; limit?: number }) {
+  const rows = limit ? bids.slice(0, limit) : bids;
+
+  if (rows.length === 0) {
     return (
       <p className="px-4 py-6 text-center text-sm text-muted">
         No bids on this player yet.
@@ -73,7 +75,7 @@ export function BidHistory({ bids }: { bids: Bid[] }) {
 
   return (
     <ol className="divide-y divide-line">
-      {bids.map((bid, index) => (
+      {rows.map((bid, index) => (
         <li
           key={bid._id}
           className="flex items-center justify-between gap-3 px-4 py-2.5"
@@ -87,6 +89,7 @@ export function BidHistory({ bids }: { bids: Bid[] }) {
             <span className="truncate text-sm text-text">
               {bid.team?.name ?? "Unknown team"}
             </span>
+            {bid.source === "TEAM" && <Badge tone="sky">Team app</Badge>}
           </span>
           <span
             className={`shrink-0 text-sm tabular ${
