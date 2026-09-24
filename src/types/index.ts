@@ -172,12 +172,37 @@ export interface AuctionPlayer {
   category?: string;
 }
 
+export type BidSource = "CONSOLE" | "TEAM";
+
 export interface Bid {
   _id: string;
   auctionPlayer: string;
   team: Team;
   amount: number;
+  source?: BidSource;
   createdAt: string;
+}
+
+export interface TeamOwner {
+  _id: string;
+  name: string;
+  email: string;
+  team: string;
+  status: "ACTIVE" | "INACTIVE";
+  lastLoginAt?: string;
+  createdAt: string;
+}
+
+export interface TeamOwnerSession {
+  token: string;
+  owner: { id: string; name: string; email: string };
+  team: Pick<Team, "_id" | "name" | "shortName" | "logo" | "color">;
+}
+
+export interface TeamOwnerMe {
+  owner: { id: string; name: string; email: string };
+  team: Team & { squadCount: number };
+  auction: { _id: string; name: string; status: AuctionStatus } | null;
 }
 
 export interface AuctionTeamState extends Team {

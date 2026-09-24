@@ -20,6 +20,12 @@ export const queryKeys = {
   teamList: (params?: unknown) => [...queryKeys.teams, "list", params] as const,
   team: (id: string) => ["team", id] as const,
   teamSquad: (id: string) => ["team", id, "squad"] as const,
+  teamOwners: (id: string) => ["team", id, "owners"] as const,
+
+  // team-owner app session (separate token, separate cache)
+  teamSession: ["team-session"] as const,
+  teamMe: () => [...queryKeys.teamSession, "me"] as const,
+  teamSquadPublic: (id: string) => ["team-session", "squad", id] as const,
 
   players: ["players"] as const,
   playerList: (params?: unknown) => [...queryKeys.players, "list", params] as const,

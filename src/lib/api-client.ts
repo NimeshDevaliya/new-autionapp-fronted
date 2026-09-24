@@ -61,7 +61,12 @@ export function resolveBaseUrl(configured: string): string {
 
 export const apiClient = axios.create({
   baseURL: resolveBaseUrl(BASE_URL ?? "http://localhost:3005/api"),
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    // ngrok's free tier answers browser-looking requests with an HTML
+    // interstitial unless this header is present; harmless elsewhere.
+    "ngrok-skip-browser-warning": "1",
+  },
   timeout: 20_000,
 });
 
@@ -86,7 +91,10 @@ export class ApiRequestError extends Error {
   }
 }
 
-function toApiError(error: unknown): ApiRequestError {
+export function toApiError(
+  error: unknown,
+  onUnauthorized: () => void = clearToken
+): ApiRequestError {
   const axiosError = error as AxiosError<ApiEnvelope<unknown>>;
 
   if (axiosError.code === "ECONNABORTED") {
@@ -102,9 +110,10 @@ function toApiError(error: unknown): ApiRequestError {
 
   const { status, data } = axiosError.response;
 
-  // an expired or revoked session should not leave a stale token behind
+  // an expired or revoked session should not leave a stale token behind —
+  // which token depends on the client (admin panel vs team app)
   if (status === 401 && typeof window !== "undefined") {
-    clearToken();
+    onUnauthorized();
   }
 
   return new ApiRequestError(
