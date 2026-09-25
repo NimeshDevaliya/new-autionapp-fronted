@@ -22,6 +22,7 @@ import { teamsApi } from "@/lib/api/teams";
 import { queryKeys } from "@/lib/query-keys";
 import { formatMoney, roleLabel, titleCase } from "@/lib/utils";
 import { DEFAULT_TEAM_COLOR, TeamFormModal } from "../team-form-modal";
+import { OwnersSection } from "./_components/owners-section";
 import type { Player, TeamSquadEntry } from "@/types";
 
 /** `player` comes back populated, but the type allows a bare id. */
@@ -306,6 +307,8 @@ export default function TeamDetailPage({
           />
         )}
       </Panel>
+
+      <OwnersSection teamId={id} />
 
       <TeamFormModal
         open={editOpen}

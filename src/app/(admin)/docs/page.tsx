@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Download, ExternalLink } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Copy, Download, ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/layout/admin-shell";
 import { Panel } from "@/components/ui/panel";
 import { Tabs } from "@/components/ui/tabs";
@@ -44,12 +44,44 @@ export default function DocsPage() {
   const [active, setActive] = useState<DocValue>("admin-guide");
   const doc = DOCS.find((item) => item.value === active) ?? DOCS[0];
 
+  // the public links depend on where this panel is being served from (LAN IP, ngrok…)
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
+  const links = [
+    { label: "Live board (anyone, no login)", href: `${origin}/live` },
+    { label: "Team owner sign in", href: `${origin}/team/login` },
+  ];
+
   return (
     <>
       <PageHeader
         title="Docs"
         description="How the panel and the auction work. Read here, or download the PDF to share."
       />
+
+      <Panel className="mb-5 p-5">
+        <h2 className="display text-lg text-text">Share these links</h2>
+        <ul className="mt-3 flex flex-col gap-2">
+          {links.map((link) => (
+            <li
+              key={link.label}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-surface-2 px-3 py-2"
+            >
+              <span className="min-w-0">
+                <span className="block text-sm text-text">{link.label}</span>
+                <span className="block truncate text-xs text-muted">{link.href}</span>
+              </span>
+              <button
+                type="button"
+                className={cn(FILE_LINK, "h-9 border-line-strong text-sm text-text hover:bg-surface-3")}
+                onClick={() => navigator.clipboard?.writeText(link.href)}
+              >
+                <Copy className="size-4" aria-hidden /> Copy
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Panel>
 
       <Tabs
         tabs={DOCS.map((item) => ({ value: item.value, label: item.label }))}
